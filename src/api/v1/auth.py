@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from bson.objectid import ObjectId
+import cgi
 import json
 import logging
 import random
@@ -198,6 +199,40 @@ class SignupHandler(AuthHandler):
             self.flush()
 
 
+class RequestInviteHandler(AuthHandler):
+
+    @coroutine
+    def post(self):
+        logging.info("Initiating RequestInviteHandler post")
+        data = json.loads(self.request.body)
+        if "email" not in data:
+            raise HTTPError(400, reason="Missing email in body request.")
+
+        settings = yield self.settings["database"].Settings.find_one()
+        if "mail" in settings:
+            mail_settings = settings["mail"]
+
+            origin_user = {
+                'name': data.get('name', ''),
+                'email': data['email']
+            }
+
+            invite_address = "{0}/admin/users?invite={1}".format(
+                settings["hostname"], cgi.escape(origin_user['email'], quote=True))
+            try:
+                admin = yield Query(self.settings["database"], "Users").find_one({"role": "administrator"})
+                yield emails.send_request_invite_link(
+                    mail_settings, admin["email"], origin_user, invite_address, settings)
+
+            except Exception:
+                logging.exception("Error sending request invite.")
+                raise HTTPError(500, reason='Error sending request invite.')
+            raise HTTPError(200)
+        else:
+            logging.warning("Mail settings not added")
+            raise HTTPError(412, reason="Request invite not available.")
+
+
 class ResetPasswordHandler(AuthHandler):
 
     @coroutine
@@ -344,14 +379,13 @@ class GoogleOAuth2LoginHandler(AuthHandler, GoogleOAuth2Mixin):
 
             if auth_user["verified_email"]:
                 user = yield self.settings["database"].Users.find_one({"email": auth_user["email"]})
+                firstname = auth_data.get('given_name', auth_data.get('name', ""))
+                lastname = auth_data.get('family_name', "")
 
                 # Validate user if it signup by OAuth2
                 if user and 'email_validated_at' not in user:
                     logging.debug('User validated via OAuth2 %s', auth_user["email"])
-                    _fill_signup_invitation_request(
-                        user, firstname=auth_data.get('given_name', auth_data.get('name', "")),
-                        lastname=auth_data.get('family_name', ""), password=None)
-
+                    _fill_signup_invitation_request(user, firstname=firstname, lastname=lastname, password=None)
                     user = yield Query(self.settings["database"], 'Users').update(user)
 
                 if user:
@@ -359,7 +393,10 @@ class GoogleOAuth2LoginHandler(AuthHandler, GoogleOAuth2Mixin):
                     self.redirect('/')
                 else:
                     logging.debug("User '%s' not found", auth_user["email"])
-                    raise HTTPError(400, "Invalid authentication request.")
+                    self.redirect('/request-invite?account={0}&name={1}'.format(
+                        cgi.escape(auth_user["email"], quote=True),
+                        cgi.escape("{0} {1}".format(firstname, lastname), quote=True)))
+
             else:
                 logging.info("User email '%s' not verified.", auth_user["email"])
                 raise HTTPError(400, "Email is not verified.")
@@ -477,6 +514,9 @@ class Saml2LoginHandler(AuthHandler):
 
         attributes = auth.get_attributes()
         logging.debug('SAML Attributes received: {0}'.format(attributes))
+        first_name = self._get_attribute(attributes, self.FIRST_NAME_ATTRIBUTES)
+        last_name = self._get_attribute(attributes, self.LAST_NAME_ATTRIBUTES)
+
         settings = yield Query(self.settings["database"], "Settings").find_one()
         saml = settings[u'authentication'].get('saml', None)
 
@@ -486,8 +526,6 @@ class Saml2LoginHandler(AuthHandler):
         # Validate user if it signup by SAML
         if user and 'email_validated_at' not in user:
             logging.debug('User validated via SAML %s', user_id)
-            first_name = self._get_attribute(attributes, self.FIRST_NAME_ATTRIBUTES)
-            last_name = self._get_attribute(attributes, self.LAST_NAME_ATTRIBUTES)
             _fill_signup_invitation_request(user, firstname=first_name, lastname=last_name, password=None)
             user = yield Query(self.settings["database"], 'Users').update(user)
 
@@ -496,4 +534,6 @@ class Saml2LoginHandler(AuthHandler):
             self.redirect('/')
         else:
             logging.debug("User '%s' not found", user_id)
-            raise HTTPError(400, "Invalid authentication request.")
+            self.redirect('/request-invite?account={0}&name={1}'.format(
+                cgi.escape(user_id, quote=True),
+                cgi.escape("{0} {1}".format(first_name, last_name), quote=True)))

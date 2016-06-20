@@ -22,7 +22,8 @@ from smtplib import SMTP, SMTP_SSL
 import concurrent.futures
 from tornado.gen import Return, coroutine
 
-from api.templates import INVITE_TEMPLATE, INVITE_SUBJECT, RESET_PASSWORD_EMAIL_TEMPLATE, RESET_PASSWORD_EMAIL_SUBJECT
+from api.templates import INVITE_TEMPLATE, INVITE_SUBJECT, REQUEST_INVITE_TEMPLATE, REQUEST_INVITE_SUBJECT, \
+    RESET_PASSWORD_EMAIL_TEMPLATE, RESET_PASSWORD_EMAIL_SUBJECT
 
 DEFAULT_THREADPOOL = concurrent.futures.ThreadPoolExecutor(max_workers=6)
 HTML_BODY_TYPE = 'html'
@@ -118,3 +119,28 @@ def send_reset_password_link(smtp_config, user_data, settings, threadpool=None):
         threadpool = DEFAULT_THREADPOOL
 
     yield threadpool.submit(send_reset_password_email_sync, smtp_config, user_data, settings)
+
+
+def send_request_invite_email_sync(smtp_config, admin_email, origin_user, invite_address, settings):
+    try:
+        name_escaped = cgi.escape(origin_user['name'])
+        email_escaped = cgi.escape(origin_user['email'], quote=True)
+        invite_address_escaped = cgi.escape(invite_address)
+
+        email_body = REQUEST_INVITE_TEMPLATE.format(
+            origin_name=name_escaped,
+            origin_email=email_escaped,
+            invite_address=invite_address_escaped)
+        send(smtp_config, admin_email, REQUEST_INVITE_SUBJECT, email_body, HTML_BODY_TYPE)
+    except Exception:
+        logging.exception("Exception detected sending request invite email")
+        raise
+
+
+@coroutine
+def send_request_invite_link(smtp_config, admin_email, origin_user, invite_address, settings, threadpool=None):
+    if threadpool is None:
+        threadpool = DEFAULT_THREADPOOL
+
+    yield threadpool.submit(
+        send_request_invite_email_sync, smtp_config, admin_email, origin_user, invite_address, settings)

@@ -25,7 +25,7 @@ class InviteUsersController {
 
         this.namespaces = namespacesStore.getAll();
         this.selectedNamespaces = [];
-        this.emails = [];
+        this.emails = this.emails || [];
         this.note = '';
 
         namespacesStore.addChangeListener(onChange);

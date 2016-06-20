@@ -14,23 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import './ek-invite-users.less';
+import './ek-request-invite.less';
 import Directive from 'directive';
-import Controller from './ek-invite-users.controller';
-import template from './ek-invite-users.html';
+import Controller from './ek-request-invite.controller';
+import icons from '../icons';
+import template from './ek-request-invite.html';
 
-class AdminUsersDirective extends Directive {
+class RequestInviteDirective extends Directive {
+
     constructor() {
         super({ Controller, template });
-
-        this.bindToController = {
-            emails: '='
-        };
     }
 
     compile(tElement) {
-        tElement.addClass('ek-invite-users');
+        tElement.addClass('ek-request-invite layout-column layout-align-center-center');
+
+        return ($scope) => $scope.icons = icons;
     }
 }
 
-export default AdminUsersDirective;
+export default RequestInviteDirective;

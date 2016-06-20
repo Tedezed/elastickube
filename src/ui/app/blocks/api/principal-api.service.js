@@ -48,6 +48,10 @@ class PrincipalAPIService extends AbstractAPI {
     changePassword(newPassword) {
         return this._$http.post('api/v1/auth/change-password', newPassword);
     }
+
+    requestInvite(email) {
+        return this._$http.post('api/v1/auth/request-invite', email);
+    }
 }
 
 export default PrincipalAPIService;

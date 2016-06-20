@@ -90,6 +90,13 @@ const states = [{
             }
         }
     }
+}, {
+    state: 'request-invite',
+    config: {
+        url: '/request-invite?account&name',
+        parent: 'anonymous',
+        template: '<ek-request-invite></ek-request-invite>'
+    }
 }];
 
 function loginRoutes(routerHelperProvider) {
