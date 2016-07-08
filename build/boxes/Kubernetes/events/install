@@ -8,7 +8,7 @@ if [[ ! -d "${K8S_DIR}" ]]
 then
     echo "Downloading kubernetes (this make time a few minutes)..."
     mkdir -p ${K8S_DIR}
-    curl -ksL ${K8S_URL} | tar -xz -C ${K8S_DIR} --strip-components=1
+    curl -kL ${K8S_URL} | tar -xz -C ${K8S_DIR} --strip-components=1
     tar xvf ${K8S_DIR}/server/kubernetes-server-linux-amd64.tar.gz -C ${K8S_DIR} --strip-components=2
 fi
 

@@ -36,41 +36,39 @@ if [[ -x /usr/bin/yum ]]; then
     service docker start
 
 elif [[ -f /etc/lsb-release ]]; then
-    UBUNTU_KEY='36A1D7869245C8950F966E92D8576A8BA88D21E9'
-    UBUNTU_VERSION="$(lsb_release -d | awk -F "\t" '{ print $2 }')"
+    UBUNTU_KEY='58118E89F3A912897C070ADBF76221572C52609D'
+    UBUNTU_VERSION="$(lsb_release -cs)"
 
-    EC2_ARCHIVE_PPA="http://.*\.ec2\.archive\.ubuntu\.com"
-    if [[ -n "$(egrep "${EC2_ARCHIVE_PPA}" /etc/apt/sources.list)" ]]; then
-        echo -e "$(date) - Relying on the official Ubuntu PPAs."
-
-        if [[ -n "$(lsb_release -cs | egrep "(saucy)")" ]]; then
-            sed -ir "s|${EC2_ARCHIVE_PPA}|http\:\/\/us.archive\.ubuntu\.com|" /etc/apt/sources.list
-        elif [[ -n "$(lsb_release -cs | egrep "(raring|quantal)")" ]]; then
-            sed -i "s|${EC2_ARCHIVE_PPA}|http\:\/\/old-releases\.ubuntu\.com|" /etc/apt/sources.list
-            sed -ir "s|http\:\/\/security\.ubuntu\.com|http\:\/\/old-releases\.ubuntu\.com|" /etc/apt/sources.list
-        fi
+    if [[ ! -n "$(echo ${UBUNTU_VERSION} | egrep "(precise|trusty|wily|xenial)")" ]]
+    then
+        echo -e "$(date) - Docker is not supported in ${UBUNTU_VERSION} distribution"
+        exit 1
     fi
     
-    echo deb https://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list
-    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys ${UBUNTU_KEY}
+    echo "deb https://apt.dockerproject.org/repo ubuntu-${UBUNTU_VERSION} main" > /etc/apt/sources.list.d/docker.list
+    apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys ${UBUNTU_KEY}
 
     apt-get -y update
-    apt-get -y install linux-image-extra-$(uname -r) aufs-tools
+    apt-get -y install apt-transport-https ca-certificates
+    apt-get -y purge lxc-docker
 
-    if [[ -n "$(lsb_release -cs | egrep "(vivid|utopic|trusty)")" ]]
+    if [[ -n "$(echo ${UBUNTU_VERSION} | egrep "(trusty|wily|xenial)")" ]]
     then
-        apt-get -y install docker.io
-        source /etc/bash_completion.d/docker.io
+        apt-get -y install linux-image-extra-$(uname -r)
     fi
 
-    if [[ -e /usr/lib/apt/methods/https ]]
+    if [[ -n "$(echo ${UBUNTU_VERSION} | egrep "(precise|trusty)")" ]]
     then
-        apt-get -y install apt-transport-https
+        apt-get -y install apparmor
     fi
 
-    apt-get -y install lxc-docker
-    
+    apt-get -y install docker-engine
     if [ "$?" -eq "100" ]; then
         exit 1
+    fi
+
+    if [[ -n "$(echo ${UBUNTU_VERSION} | egrep "(wily|xenial)")" ]]
+    then
+        systemctl enable docker
     fi
 fi

@@ -48,12 +48,13 @@ function sshdiagnostics {
   ks exec -it $POD_NAME -c elastickube-diagnostics /bin/bash
 }
 
-alias removeoauth="python /opt/elastickube/build/tools/kubeman.py auth remove-oauth"
-alias deletedb="python /opt/elastickube/build/tools/kubeman.py database delete-db"
-alias tests="python /opt/elastickube/src/tests/runtests.py /opt/elastickube/src/tests --processes 10 --process-timeout=90"
-
 function addusers {
   python /opt/elastickube/build/tools/kubeman.py users add-user -e "{{ instance.name }}@elasticbox.com" -f "{{ instance.name }}" -l "Admin"
   python /opt/elastickube/build/tools/kubeman.py users add-user -e "operations@elasticbox.com" -f "Admin" -l "ElasticBox"
   python /opt/elastickube/build/tools/kubeman.py users add-user -e "engineer@elasticbox.com" -f "Engineer" -l "ElasticBox" -r "user"
 }
+
+export PYTHONPATH="/opt/elastickube/src"
+alias removeoauth="python /opt/elastickube/build/tools/kubeman.py auth remove-oauth"
+alias deletedb="python /opt/elastickube/build/tools/kubeman.py database delete-db"
+alias tests="pushd /opt/elastickube/src/tests > /dev/null; python run_tests.py; popd > /dev/null;"
