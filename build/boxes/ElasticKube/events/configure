@@ -6,3 +6,9 @@ chown vagrant:vagrant /home/vagrant/.bash_aliases
 
 echo "==> Install and activate grunt"
 curl -ks "{{ GRUNT_UPSTART }}" -o /etc/init/kubegrunt.conf
+
+if [[ -z "$(cat /etc/group | grep docker)" ]]
+then
+    groupadd docker
+    usermod -aG docker vagrant
+fi

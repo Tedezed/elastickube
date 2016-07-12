@@ -16,7 +16,7 @@ then
 fi
 
 # Ensure heapster is running
-if [[ -z $(${KUBECTL} get rc --namespace=kube-system | grep heapster) ]]
+if [[ -z $(${KUBECTL} get deployments --namespace=kube-system | grep heapster) ]]
 then
     ${KUBECTL} create -f heapster/
 fi
