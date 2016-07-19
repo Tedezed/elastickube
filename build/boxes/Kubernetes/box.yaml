@@ -38,10 +38,10 @@ variables:
   value: Node
   visibility: public
 - name: KUBERNETES_VERSION
-  options: 1.3.0
+  options: 1.3.2
   required: false
   type: Options
-  value: 1.3.0
+  value: 1.3.2
   visibility: public
 - name: KUBELET_DNS
   required: false
