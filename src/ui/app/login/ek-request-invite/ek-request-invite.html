@@ -20,6 +20,6 @@
     <div layout="row" layout-align="center">
         <md-button type="submit"
                    class="ek-request-invite__form__submit-btn md-raised md-primary md-ink-ripple"
-                   ng-disabled="resetPasswordForm.$invalid">request invite
+                   ng-disabled="resetPasswordForm.$invalid || ctrl.submitting">request invite
         </md-button>
 </form>

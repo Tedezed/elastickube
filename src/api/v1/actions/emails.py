@@ -22,8 +22,8 @@ from smtplib import SMTP, SMTP_SSL
 import concurrent.futures
 from tornado.gen import Return, coroutine
 
-from api.templates import INVITE_TEMPLATE, INVITE_SUBJECT, REQUEST_INVITE_TEMPLATE, REQUEST_INVITE_SUBJECT, \
-    RESET_PASSWORD_EMAIL_TEMPLATE, RESET_PASSWORD_EMAIL_SUBJECT
+from api.templates import INVITE_MESSSAGE_TEMPLATE, INVITE_TEMPLATE, INVITE_SUBJECT, REQUEST_INVITE_TEMPLATE, \
+    REQUEST_INVITE_SUBJECT, RESET_PASSWORD_EMAIL_TEMPLATE, RESET_PASSWORD_EMAIL_SUBJECT
 
 DEFAULT_THREADPOOL = concurrent.futures.ThreadPoolExecutor(max_workers=6)
 HTML_BODY_TYPE = 'html'
@@ -79,8 +79,13 @@ def generate_invite_template(origin_user, invite_address, message):
     email_escaped = cgi.escape(origin_user['email'], quote=True)
     invite_address_escaped = cgi.escape(invite_address)
 
-    return INVITE_TEMPLATE.format(invite_address=invite_address_escaped, custom_message=message_escaped,
-                                  origin_name=name_escaped, origin_email=email_escaped)
+    custom_message = INVITE_MESSSAGE_TEMPLATE.format(message=message_escaped) if len(message_escaped) > 0 else ''
+
+    return INVITE_TEMPLATE.format(
+        invite_address=invite_address_escaped,
+        custom_message=custom_message,
+        origin_name=name_escaped,
+        origin_email=email_escaped)
 
 
 def send_invites_sync(smtp_config, origin_user, info_invites, message):

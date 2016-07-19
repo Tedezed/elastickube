@@ -9,6 +9,9 @@ RESET_PASSWORD_EMAIL_SUBJECT = u"Reset your password"
 with open(os.path.join(TEMPLATE_PATH, 'invite.html')) as invite_file:
     INVITE_TEMPLATE = invite_file.read()
 
+with open(os.path.join(TEMPLATE_PATH, 'invite_message.html')) as invite_message_file:
+    INVITE_MESSSAGE_TEMPLATE = invite_message_file.read()
+
 with open(os.path.join(TEMPLATE_PATH, 'request_invite.html')) as request_invite_file:
     REQUEST_INVITE_TEMPLATE = request_invite_file.read()
 
