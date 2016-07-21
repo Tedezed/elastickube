@@ -35,6 +35,9 @@
     "google_id": {
       "type": "string"
     },
+    "saml_id": {
+      "type": "string"
+    },
     "icon": {
       "type": "string",
       "maxLength": 256

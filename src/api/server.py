@@ -24,8 +24,8 @@ from tornado.web import Application
 
 from api.v1 import configure, initialize
 from api.v1.main import MainWebSocketHandler
-from api.v1.auth import AuthProvidersHandler, ChangePasswordHandler, GoogleOAuth2LoginHandler, \
-    PasswordHandler, RequestInviteHandler, ResetPasswordHandler, Saml2LoginHandler, SignupHandler
+from api.v1.auth import AuthProvidersHandler, ChangePasswordHandler, GoogleOAuth2LoginHandler, PasswordHandler, \
+    RequestInviteHandler, ResetPasswordHandler, Saml2LoginHandler, Saml2MetadataHandler, SignupHandler
 from api.v1.icons import IconGenerator
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s %(message)s')
@@ -58,6 +58,7 @@ def start_server(future):
         (r"/api/v1/auth/login", PasswordHandler),
         (r"/api/v1/auth/google", GoogleOAuth2LoginHandler),
         (r"/api/v1/auth/saml", Saml2LoginHandler),
+        (r"/api/v1/auth/saml/metadata", Saml2MetadataHandler),
         (r"/api/v1/ws", MainWebSocketHandler),
         (r"/icons/(?P<entity_id>[^\/]+)\/(?P<chart_id>[^\/]+)", IconGenerator)
     ]

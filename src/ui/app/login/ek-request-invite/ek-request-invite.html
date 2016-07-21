@@ -1,6 +1,6 @@
 <h2 class="ek-request-invite__title">Request Invite</h2>
 <p class="ek-request-invite__legend" ng-if="!ctrl.account">Enter your email to request an invite from your administrator.</p>
-<p class="ek-reset-password__legend" ng-if="ctrl.account">Your account <b>{{ ctrl.account }}</b> has not yet been enabled. Request an invite from your administrator to continue.</p>
+<p class="ek-reset-password__legend" ng-if="ctrl.account">Your account <b>{{ ctrl.name }} ({{ ctrl.account }})</b> has not yet been enabled. Request an invite from your administrator to continue.</p>
 
 <form ng-submit="ctrl.submit()" class="ek-request-invite__form" name="requestInviteForm">
     <div layout="row" ng-if="!ctrl.account">

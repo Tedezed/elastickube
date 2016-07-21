@@ -85,7 +85,7 @@
                     </div>
                 </div>
                 <div class="ek-admin-settings__authentication__methods__configuration" ng-if="ctrl.auth_sso === 'saml'">
-                    <div class="ek-admin-settings__subtitle ek-admin-settings__subtitle--required">Metadata document</div>
+                    <div class="ek-admin-settings__subtitle ek-admin-settings__subtitle--required">IdP Metadata</div>
 
                     <div layout="row" layout-align="start center" ng-hide="ctrl.auth.saml_data.idp_domain">
                         <input id="fileMetadata" name="file" type="file" size-limit="10240" ek-on-file-change="ctrl.readMetadata"
@@ -113,9 +113,17 @@
                         {{:: ctrl.metadata_error }}
                     </div>
 
-                    <div class="ek-admin-settings__subtitle ek-admin-settings__subtitle">Redirect URI</div>
-                    <input type="text" class="ek-admin-settings__input ek-admin-settings__input--long ek-admin-settings__input--readonly ek-input"
-                           ng-value="ctrl.hostname + '/api/v1/auth/saml'" ng-readonly="true">
+                    <div class="ek-admin-settings__subtitle ek-admin-settings__subtitle">SP Metadata</div>
+
+                    <div class="ek-admin-settings__authentication__methods__configuration__file" layout="row" layout-align="space-between center">
+                        <div layout="row" layout-align="start center">
+                            <div>
+                                <p>elastickube_sp.xml</p>
+                            </div>    
+                        </div>
+                        
+                        <a class="ek-admin-settings__button--file ek-button ek-button md-button md-ink-ripple" ng-href="/api/v1/auth/saml/metadata" download="elastickube_sp.xml">Download</a>
+                    </div>
 
                 </div>
             </md-radio-group>

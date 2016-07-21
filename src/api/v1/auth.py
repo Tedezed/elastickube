@@ -19,6 +19,7 @@ import cgi
 import json
 import logging
 import random
+import re
 import string
 import urllib
 import urlparse
@@ -27,8 +28,9 @@ from datetime import datetime, timedelta
 
 import jwt
 from lxml import etree
-from onelogin.saml2.constants import OneLogin_Saml2_Constants
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
+from onelogin.saml2.constants import OneLogin_Saml2_Constants
+from onelogin.saml2.metadata import OneLogin_Saml2_Metadata
 from passlib.hash import sha512_crypt
 from tornado.auth import GoogleOAuth2Mixin
 from tornado.gen import coroutine, Return
@@ -410,11 +412,63 @@ class GoogleOAuth2LoginHandler(AuthHandler, GoogleOAuth2Mixin):
                 extra_params={'approval_prompt': 'auto'})
 
 
+class Saml2MetadataHandler(RequestHandler):
+
+    @coroutine
+    def get(self):
+        logging.info("Initiating SAML 2.0 Metadata get.")
+
+        settings = yield Query(self.settings["database"], "Settings").find_one()
+        saml_settings = Saml2MetadataHandler.get_saml_settings(settings)
+
+        self.set_header('Content-Type', 'text/xml')
+        self.write(OneLogin_Saml2_Metadata.builder(
+            sp=saml_settings['sp'],
+            authnsign=saml_settings['security']['authnRequestsSigned'],
+            wsign=saml_settings['security']['wantAssertionsSigned'])
+        )
+        self.flush()
+
+    @staticmethod
+    def get_saml_settings(settings, saml_config=None):
+        saml_settings = dict(
+            sp=dict(
+                entityId=urlparse.urlparse(settings["hostname"]).netloc,
+                assertionConsumerService=dict(
+                    url="{0}/api/v1/auth/saml".format(settings["hostname"]),
+                    binding=OneLogin_Saml2_Constants.BINDING_HTTP_POST),
+                NameIDFormat=OneLogin_Saml2_Constants.NAMEID_UNSPECIFIED,
+                attributeConsumingService=dict(
+                    serviceName="ElasticKube SAML",
+                    serviceDescription="ElasticKube SAML Service Provider",
+                    requestedAttributes=[]
+                )
+            ),
+            security=dict(
+                authnRequestsSigned=False,
+                wantAssertionsSigned=True,
+                wantNameId=True
+            )
+        )
+
+        if saml_config is not None:
+            saml_settings['idp'] = dict(
+                entityId=saml_config['idp_entity_id'],
+                singleSignOnService=dict(
+                    url=saml_config['idp_sso'],
+                    binding=OneLogin_Saml2_Constants.BINDING_HTTP_REDIRECT),
+                x509cert=saml_config['idp_cert']
+            )
+
+        return saml_settings
+
+
 class Saml2LoginHandler(AuthHandler):
 
     NS_IDENTITY_CLAIMS = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/'
-    FIRST_NAME_ATTRIBUTES = ['FirstName', 'User.FirstName', NS_IDENTITY_CLAIMS + 'givenname']
-    LAST_NAME_ATTRIBUTES = ['LastName', 'User.LastName', NS_IDENTITY_CLAIMS + 'surname']
+    EMAIL_ATTRIBUTES = ('email', 'Email', 'User.Email', NS_IDENTITY_CLAIMS + 'email')
+    FIRST_NAME_ATTRIBUTES = ('firstname', 'FirstName', 'User.FirstName', NS_IDENTITY_CLAIMS + 'givenname')
+    LAST_NAME_ATTRIBUTES = ('lastname', 'LastName', 'User.LastName', NS_IDENTITY_CLAIMS + 'surname')
 
     IDP_CERT_PATH = "md:IDPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate"
     IDP_SSO_PATH = "md:IDPSSODescriptor/md:SingleSignOnService[@Binding='{0}']".format(
@@ -435,26 +489,6 @@ class Saml2LoginHandler(AuthHandler):
 
         return (idp_entity_id, idp_domain, idp_cert, idp_sso)
 
-    def _get_saml_settings(self, saml_config, settings):
-        saml_settings = dict(
-            sp=dict(
-                entityId=settings["hostname"],
-                assertionConsumerService=dict(
-                    url="{0}/api/v1/auth/saml".format(settings["hostname"]),
-                    binding=OneLogin_Saml2_Constants.BINDING_HTTP_POST),
-                NameIDFormat=OneLogin_Saml2_Constants.NAMEID_EMAIL_ADDRESS
-            ),
-            idp=dict(
-                entityId=saml_config['idp_entity_id'],
-                singleSignOnService=dict(
-                    url=saml_config['idp_sso'],
-                    binding=OneLogin_Saml2_Constants.BINDING_HTTP_REDIRECT),
-                x509cert=saml_config['idp_cert']
-            )
-        )
-
-        return saml_settings
-
     @coroutine
     def _get_saml_auth(self, request):
         settings = yield Query(self.settings["database"], "Settings").find_one()
@@ -474,7 +508,7 @@ class Saml2LoginHandler(AuthHandler):
         if port:
             saml_request['server_port'] = port
 
-        saml_settings = self._get_saml_settings(saml_config, settings)
+        saml_settings = Saml2MetadataHandler.get_saml_settings(settings, saml_config)
 
         raise Return(
             (OneLogin_Saml2_Auth(saml_request, saml_settings), "{0}/api/v1/auth/saml".format(settings["hostname"]))
@@ -484,7 +518,7 @@ class Saml2LoginHandler(AuthHandler):
         for mapping in mappings:
             values = attributes.get(mapping, [])
             if len(values) > 0:
-                return values[0]
+                return values[0].encode('utf8')
 
         return ""
 
@@ -520,20 +554,62 @@ class Saml2LoginHandler(AuthHandler):
         settings = yield Query(self.settings["database"], "Settings").find_one()
         saml = settings[u'authentication'].get('saml', None)
 
-        user_id = auth.get_nameid()
-        user = yield self.settings["database"].Users.find_one({"email": user_id})
+        name_id = auth.get_nameid()
+        user_email = self._get_attribute(attributes, self.EMAIL_ATTRIBUTES).lower()
+        if not user_email:
+            raise HTTPError(401, reason="SAML email attribute is missing.")
+
+        user = yield self.settings["database"].Users.find_one({"saml_id": name_id})
+        user_updated = False
+        if user and user["email"] != user_email:
+            logging.info("User email changed!")
+            user["email"] = user_email
+            user_updated = True
+        elif not user:
+            user = yield self.settings["database"].Users.find_one({"email": re.compile(user_email, re.IGNORECASE)})
+            if user:
+                user["saml_id"] = name_id
+                user_updated = True
 
         # Validate user if it signup by SAML
         if user and 'email_validated_at' not in user:
-            logging.debug('User validated via SAML %s', user_id)
-            _fill_signup_invitation_request(user, firstname=first_name, lastname=last_name, password=None)
-            user = yield Query(self.settings["database"], 'Users').update(user)
+            logging.debug('User %s (%s) validated via SAML', user_email, name_id)
+            user = yield self._update_invited_user(user, attributes)
+            user_updated = True
 
         if user:
+            if user_updated:
+                user = yield Query(self.settings["database"], 'Users').update(user)
             yield self.authenticate_user(user)
             self.redirect('/')
         else:
-            logging.debug("User '%s' not found", user_id)
-            self.redirect('/request-invite?account={0}&name={1}'.format(
-                cgi.escape(user_id, quote=True),
-                cgi.escape("{0} {1}".format(first_name, last_name), quote=True)))
+            logging.debug("User '%s' (%s) not found", user_email, name_id)
+            escaped_name = cgi.escape("{0} {1}".format(first_name, last_name), quote=True)
+            if not escaped_name:
+                escaped_name = cgi.escape(name_id, quote=True)
+
+            self.redirect('/request-invite?account={0}&&name={1}'.format(
+                cgi.escape(user_email, quote=True),
+                escaped_name))
+
+    @coroutine
+    def _update_invited_user(self, user, attributes):
+        for namespace_name in user["namespaces"]:
+            namespace = yield Query(self.settings["database"], "Namespaces").find_one({"name": namespace_name})
+            if namespace is None:
+                logging.warn("Cannot find namespace %s", namespace_name)
+            else:
+                if "members" in namespace:
+                    namespace["members"].append(user["username"])
+                else:
+                    namespace["members"] = [user["username"]]
+
+                yield Query(self.settings["database"], "Namespaces").update(namespace)
+
+        del user["namespaces"]
+
+        first_name = self._get_attribute(attributes, self.FIRST_NAME_ATTRIBUTES)
+        last_name = self._get_attribute(attributes, self.LAST_NAME_ATTRIBUTES)
+        _fill_signup_invitation_request(user, firstname=first_name, lastname=last_name, password=None)
+
+        raise Return(user)
