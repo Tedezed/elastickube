@@ -70,26 +70,27 @@ class AdminSettingsController {
         });
 
         this.readMetadata = (element) => {
-            const file = element.target.files[0];
             const reader = new FileReader();
 
-            reader.onload = (e) => {
-                this._$scope.$evalAsync(() => {
-                    delete this._settings.authentication.google_oauth;
+            if (element.target.files.length > 0) {
+                reader.onload = (e) => {
+                    this._$scope.$evalAsync(() => {
+                        delete this._settings.authentication.google_oauth;
 
-                    if (!this._settings.authentication.saml) {
-                        this._settings.authentication.saml = {};
-                    }
+                        if (!this._settings.authentication.saml) {
+                            this._settings.authentication.saml = {};
+                        }
 
-                    this._settings.authentication.saml.metadata = e.target.result;
-                    this._settingsActionCreator
-                        .update(this._settings)
-                        .then(() => delete this.metadata_error)
-                        .catch(() => this.metadata_error = 'Unable to parse file. Please upload a valid metadata document.');
-                });
-            };
+                        this._settings.authentication.saml.metadata = e.target.result;
+                        this._settingsActionCreator
+                            .update(this._settings)
+                            .then(() => delete this.metadata_error)
+                            .catch(() => this.metadata_error = 'Unable to parse file. Please upload a valid metadata document.');
+                    });
+                };
 
-            reader.readAsText(file);
+                reader.readAsText(element.target.files[0]);
+            }
         };
     }
 
