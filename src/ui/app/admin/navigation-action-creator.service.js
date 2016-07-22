@@ -55,14 +55,18 @@ class NavigationActionCreatorService {
         });
     }
 
-    inviteUsers() {
+    inviteUsers(emails) {
         return this._$mdDialog.show({
             parent: angular.element(document.body),
             clickOutsideToClose: false,
             openFrom: 'left',
             closeTo: 'right',
             disableParentScroll: true,
-            template: '<ek-invite-users></ek-invite-users>'
+            template: '<ek-invite-users emails="emails"></ek-invite-users>',
+            locals: { emails },
+            controller: ['$scope', 'emails', function($scope, userEmails) {
+                $scope.emails = userEmails;
+            }]
         });
     }
 }

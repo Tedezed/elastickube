@@ -28,6 +28,7 @@ import LoginDirective from './ek-login/ek-login.directive';
 import ResetPasswordDirective from './ek-reset-password/ek-reset-password.directive';
 import SignupDirective from './ek-signup/ek-signup.directive';
 import ValidateUserDirective from './ek-validate-user/ek-validate-user.directive';
+import RequestInviteDirective from './ek-request-invite/ek-request-invite.directive';
 
 const moduleName = 'app.login';
 
@@ -45,6 +46,7 @@ angular
     .directive('ekLogin', () => new LoginDirective())
     .directive('ekResetPassword', () => new ResetPasswordDirective())
     .directive('ekSignup', () => new SignupDirective())
-    .directive('ekValidateUser', () => new ValidateUserDirective());
+    .directive('ekValidateUser', () => new ValidateUserDirective())
+    .directive('ekRequestInvite', () => new RequestInviteDirective());
 
 export default moduleName;

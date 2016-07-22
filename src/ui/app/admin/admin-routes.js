@@ -65,7 +65,7 @@ const states = [{
     state: 'admin.users',
     config: {
         template: '<ek-admin-users></ek-admin-users>',
-        url: '/users',
+        url: '/users?invite',
         data: {
             header: {
                 name: 'admin'

@@ -15,11 +15,12 @@ limitations under the License.
 */
 
 class AdminUsersController {
-    constructor($scope, adminNavigationActionCreator, usersStore, settingsStore) {
+    constructor($scope, $stateParams, adminNavigationActionCreator, usersStore, settingsStore) {
         'ngInject';
 
         const onUsersChange = () => this.users = usersStore.getAll();
 
+        this._$stateParams = $stateParams;
         this._settingsStore = settingsStore;
         this._adminNavigationActionCreator = adminNavigationActionCreator;
 
@@ -77,15 +78,18 @@ class AdminUsersController {
         usersStore.addChangeListener(onUsersChange);
 
         $scope.$on('$destroy', () => usersStore.removeChangeListener(onUsersChange));
+        if (this._$stateParams.invite) {
+            this.inviteUsers([this._$stateParams.invite]);
+        }
     }
 
-    inviteUsers() {
+    inviteUsers(emails) {
         const settings = this._settingsStore.getSettings();
 
         if (_.isUndefined(settings.mail)) {
             return this._adminNavigationActionCreator.warnOutboundEmailDisabled();
         }
-        return this._adminNavigationActionCreator.inviteUsers();
+        return this._adminNavigationActionCreator.inviteUsers(emails);
     }
 }
 

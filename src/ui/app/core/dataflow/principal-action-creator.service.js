@@ -38,6 +38,12 @@ class PrincipalActionCreatorService {
         return this._principalAPI.login(user);
     }
 
+    requestInvite(email) {
+        this._dispatcher.dispatch({ type: this._actions.PRINCIPAL_REQUEST_INVITE });
+
+        return this._principalAPI.requestInvite(email);
+    }
+
     resetPassword(email) {
         this._dispatcher.dispatch({ type: this._actions.PRINCIPAL_PASSWORD_RESET });
 

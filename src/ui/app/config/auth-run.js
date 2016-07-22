@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-function checkRouteAccess($rootScope, auth, initialization, instancesNavigationActionCreator, loginNavigationActionCreator, routerHelper) {
+function checkRouteAccess($rootScope, auth, initialization, instancesNavigationActionCreator, loginNavigationActionCreator, routerHelper, sessionStorage) {
     'ngInject';
 
     $rootScope.$on('$stateChangeStart', (event, toState, toParams, fromState) => {
@@ -26,6 +26,8 @@ function checkRouteAccess($rootScope, auth, initialization, instancesNavigationA
                     if (auth.isLoggedIn()) {
                         instancesNavigationActionCreator.instances();
                     } else {
+                        sessionStorage.setItem("toState", JSON.stringify(toState))
+                        sessionStorage.setItem("toParams", JSON.stringify(toParams))
                         loginNavigationActionCreator.login();
                     }
                 }

@@ -41,6 +41,10 @@ class NavigationActionCreatorService {
     confirmResetPassword() {
         return this._routerHelper.changeToState('confirm-reset-password');
     }
+
+    requestInvite() {
+        return this._routerHelper.changeToState('request-invite');
+    }
 }
 
 export default NavigationActionCreatorService;
