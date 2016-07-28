@@ -336,7 +336,15 @@ class PasswordHandler(AuthHandler):
 
         user = yield self.settings["database"].Users.find_one({"username": username})
         if not user:
-            logging.debug("Username '%s' not found.", username)
+            logging.info("Username '%s' not found.", username)
+            raise HTTPError(302, reason='/request-invite')
+
+        if 'email_validated_at' not in user:
+            logging.info("Username '%s' not validated.", username)
+            raise HTTPError(302, reason='/request-invite')
+
+        if 'password' not in user:
+            logging.info("User '%s' has not password.", username)
             raise HTTPError(401, reason="Invalid username or password.")
 
         encoded_user_password = '{0}{1}'.format(user["password"]["rounds"], user["password"]["hash"])
