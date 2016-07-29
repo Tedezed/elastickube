@@ -32,6 +32,7 @@ class RequestInviteController {
 
     submit() {
         this.submitting = true;
+
         return this._principalActionCreator.requestInvite({ email: this.account || this.email, name: this.name })
             .then(() => this._loginNavigationActionCreator.login())
             .catch((error) => this._$log.warn(error.statusText))

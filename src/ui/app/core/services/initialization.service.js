@@ -51,6 +51,7 @@ class InitializationService {
 
     initializeLoggedInUser() {
         const sessionToken = this._$cookies.get(constants.SESSION_TOKEN_NAME);
+        const initialState = this._sessionStore.getInitialState();
         const sessionDestroyed = sessionToken !== this._sessionStore.getSessionToken()
             ? this._sessionActionCreator.destroy().then(() => this._sessionActionCreator.storeSessionToken(sessionToken))
             : false;
@@ -74,6 +75,11 @@ class InitializationService {
                 }
 
                 return this._sessionActionCreator.selectNamespace(namespace);
+            })
+            .then(() => {
+                if (initialState) {
+                    this._sessionStore.setInitialState(initialState.name, initialState.params);
+                }
             })
             .then(() => {
                 if (!this.initialized) {
