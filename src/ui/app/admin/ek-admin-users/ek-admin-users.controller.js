@@ -28,6 +28,10 @@ class AdminUsersController {
         this.users = usersStore.getAll();
         this.filteredUsers = [];
 
+        if (this._$stateParams.invite) {
+            this.inviteUsers([this._$stateParams.invite]);
+        }
+
         this.tableOptions = {
             data: 'ctrl.filteredUsers',
             getIdentity: (item) => item.username,
@@ -78,9 +82,6 @@ class AdminUsersController {
         usersStore.addChangeListener(onUsersChange);
 
         $scope.$on('$destroy', () => usersStore.removeChangeListener(onUsersChange));
-        if (this._$stateParams.invite) {
-            this.inviteUsers([this._$stateParams.invite]);
-        }
     }
 
     inviteUsers(emails) {
@@ -89,6 +90,7 @@ class AdminUsersController {
         if (_.isUndefined(settings.mail)) {
             return this._adminNavigationActionCreator.warnOutboundEmailDisabled();
         }
+
         return this._adminNavigationActionCreator.inviteUsers(emails);
     }
 }

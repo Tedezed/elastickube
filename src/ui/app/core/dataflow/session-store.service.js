@@ -72,6 +72,18 @@ class SessionStoreService extends AbstractStore {
         return this._session.getItem(constants.ADMIN_INSTANCES_STATUS);
     }
 
+    setInitialState(name, params) {
+        this._session.setItem(constants.INITIAL_STATE, JSON.stringify({'name': name, 'params': params}));
+    }
+
+    getInitialState() {
+        return this._session.getItem(constants.INITIAL_STATE) && JSON.parse(this._session.getItem(constants.INITIAL_STATE));
+    }
+
+    removeInitialState() {
+        return this._session.removeItem(constants.INITIAL_STATE);
+    }
+
     addNamespaceChangeListener(callback) {
         this.on(NAMESPACE_UPDATED_EVENT, callback);
     }

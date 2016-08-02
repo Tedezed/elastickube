@@ -74,7 +74,6 @@ angular
     ])
 
     .constant('storage', localStorage)
-    .constant('sessionStorage', sessionStorage)
     .constant('actions', actions)
 
     .filter('ekHumanizeDate', () => humanizeDateFilter)

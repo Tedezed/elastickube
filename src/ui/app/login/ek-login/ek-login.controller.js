@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 class LoginController {
-    constructor($log, $scope, initialization, instancesNavigationActionCreator, loginNavigationActionCreator, principalActionCreator, routerHelper, sessionStorage) {
+    constructor($log, $scope, initialization, instancesNavigationActionCreator, loginNavigationActionCreator, principalActionCreator, routerHelper, sessionStore) {
         'ngInject';
 
         this._$log = $log.getInstance(this.constructor.name);
@@ -25,18 +25,18 @@ class LoginController {
         this._loginNavigationActionCreator = loginNavigationActionCreator;
         this._principalActionCreator = principalActionCreator;
         this._routerHelper = routerHelper;
+        this._sessionStore = sessionStore;
     }
 
     submit() {
         return this._principalActionCreator.login(this.user)
             .then(() => this._initialization.initializeLoggedInUser())
             .then(() => {
-                if (sessionStorage.hasOwnProperty("toState")) {
-                    var _toState = JSON.parse(sessionStorage.getItem("toState"));
-                    var _toParams = JSON.parse(sessionStorage.getItem("toParams"));
-                    sessionStorage.removeItem("toState");
-                    sessionStorage.removeItem("toParams");
-                    this._routerHelper.changeToState(_toState.name, _toParams);
+                const _initialState = this._sessionStore.getInitialState();
+
+                if (_initialState) {
+                    this._sessionStore.removeInitialState();
+                    this._routerHelper.changeToState(_initialState.name, _initialState.params);
                 } else {
                     this._instancesNavigationActionCreator.instances();
                 }
