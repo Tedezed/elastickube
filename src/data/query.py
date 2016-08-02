@@ -55,12 +55,14 @@ class Query(object):
         raise Return(document)
 
     @coroutine
-    def find(self, criteria=None, projection=None):
+    def find(self, criteria=None, projection=None, sort=None, limit=0):
         documents = []
 
         cursor = self.database[self.collection].find(
             self._generate_query(criteria),
             projection,
+            sort=sort,
+            limit=limit,
             manipulate=self.manipulate)
         while (yield cursor.fetch_next):
             documents.append(cursor.next_object())

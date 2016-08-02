@@ -62,7 +62,7 @@ elif [[ -f /etc/lsb-release ]]; then
         apt-get -y install apparmor
     fi
 
-    apt-get -y install docker-engine
+    apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install docker-engine
     if [ "$?" -eq "100" ]; then
         exit 1
     fi

@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import pymongo
+
 from api.v1.watchers import filter_namespaces, filter_metrics
 
 
@@ -28,6 +30,8 @@ class WatcherMetadata(object):
                 "collection": "Users",
                 "projection": {"password": 0},
                 "criteria": {},
+                "sort": None,
+                "limit": 0,
                 "filter_data": None,
                 "manipulate": False
             },
@@ -35,6 +39,8 @@ class WatcherMetadata(object):
                 "collection": "Namespaces",
                 "projection": None,
                 "criteria": {},
+                "sort": None,
+                "limit": 0,
                 "filter_data": filter_namespaces,
                 "manipulate": False
             },
@@ -42,6 +48,8 @@ class WatcherMetadata(object):
                 "collection": "Settings",
                 "projection": None,
                 "criteria": {},
+                "sort": None,
+                "limit": 0,
                 "filter_data": None,
                 "manipulate": False
             },
@@ -49,6 +57,8 @@ class WatcherMetadata(object):
                 "collection": "Charts",
                 "projection": None,
                 "criteria": {},
+                "sort": None,
+                "limit": 0,
                 "filter_data": None,
                 "manipulate": True
             },
@@ -56,6 +66,8 @@ class WatcherMetadata(object):
                 "collection": "Metrics",
                 "projection": None,
                 "criteria": {},
+                "limit": 500,
+                "sort": [("timestamp", pymongo.DESCENDING)],
                 "filter_data": filter_metrics,
                 "manipulate": False
             },
