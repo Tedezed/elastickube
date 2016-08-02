@@ -45,7 +45,10 @@ class CursorWatcher(object):
         data = yield Query(
             self.settings["database"],
             self.metadata["collection"],
-            manipulate=self.metadata["manipulate"]).find(projection=self.metadata["projection"])
+            manipulate=self.metadata["manipulate"]).find(
+                projection=self.metadata["projection"],
+                sort=self.metadata["sort"],
+                limit=self.metadata["limit"])
 
         data = self.filter_data(data)
         self.callback(dict(
