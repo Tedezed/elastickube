@@ -15,9 +15,10 @@ limitations under the License.
 */
 
 class LoginController {
-    constructor($log, $scope, initialization, instancesNavigationActionCreator, loginNavigationActionCreator, principalActionCreator, routerHelper, sessionStore) {
+    constructor($location, $log, $scope, initialization, instancesNavigationActionCreator, loginNavigationActionCreator, principalActionCreator, routerHelper, sessionStore) {
         'ngInject';
 
+        this._$location = $location;
         this._$log = $log.getInstance(this.constructor.name);
         this._$scope = $scope;
         this._initialization = initialization;
@@ -41,7 +42,13 @@ class LoginController {
                     this._instancesNavigationActionCreator.instances();
                 }
             })
-            .catch((error) => this._$log.warn(error.body));
+            .catch((error) => {
+                if (error.status == 302) {
+                    this._$location.path(error.statusText);
+                } else {
+                    this._$log.warn(error.statusText || error);
+                }
+            })
     }
 
     resetPassword() {
