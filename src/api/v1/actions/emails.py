@@ -128,9 +128,9 @@ def send_reset_password_link(smtp_config, user_data, settings, threadpool=None):
 
 def send_request_invite_email_sync(smtp_config, admin_email, origin_user, invite_address, settings):
     try:
-        name_escaped = cgi.escape(origin_user['name'].encode('utf8'))
-        email_escaped = cgi.escape(origin_user['email'].encode('utf8'), quote=True)
-        invite_address_escaped = cgi.escape(invite_address.encode('utf8'))
+        name_escaped = origin_user['name'].encode('ascii', 'xmlcharrefreplace')
+        email_escaped = origin_user['email'].encode('ascii', 'xmlcharrefreplace')
+        invite_address_escaped = invite_address.encode('ascii', 'xmlcharrefreplace')
 
         email_body = REQUEST_INVITE_TEMPLATE.format(
             origin_name=name_escaped,
