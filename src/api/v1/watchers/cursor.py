@@ -50,13 +50,18 @@ class CursorWatcher(object):
                 sort=self.metadata["sort"],
                 limit=self.metadata["limit"])
 
-        data = self.filter_data(data)
+        filtered_data = []
+        for item in data:
+            filtered_item = self.filter_data(item)
+            if filtered_item:
+                filtered_data.append(filtered_item)
+
         self.callback(dict(
             action=self.message["action"],
             operation="watched",
             correlation=self.message["correlation"],
             status_code=200,
-            body=data
+            body=filtered_data
         ))
 
         add_callback(self.metadata["collection"], self.data_callback)

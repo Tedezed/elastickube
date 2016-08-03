@@ -31,4 +31,14 @@ def filter_namespaces(data, user, _message):
 
 
 def filter_metrics(data, user, message):
+    if "body" in message and "name" in message["body"]:
+        if ("involvedObject" in data and
+                "name" in data["involvedObject"] and
+                data["involvedObject"]["name"] == message["body"]["name"]):
+            return data
+        else:
+            return None
+    else:
+        return data
+
     return data
