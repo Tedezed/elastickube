@@ -37,9 +37,6 @@ class MetricsWatcher(CursorWatcher):
             if self.user["username"] not in namespace["members"]:
                 raise Return(False)
 
-        if "name" in self.message["body"]:
-            self._params["name"] = self.message["body"]["name"]
-
         raise Return(True)
 
     def validate_message(self):
@@ -79,3 +76,6 @@ class MetricsWatcher(CursorWatcher):
             ))
 
             raise RuntimeError()
+
+        if "name" in self.message["body"]:
+            self._params["name"] = self.message["body"]["name"]

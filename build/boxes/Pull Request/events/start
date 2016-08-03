@@ -92,7 +92,7 @@ ______________________MONGO_SCRIPT______________________
 
 # Wait for api to be up
 echo -n "Waiting API endpoint to be available"
-until curl localhost/api/v1/auth/providers > /dev/null 2>&1
+until curl localhost/api/v1/auth/providers | grep 'password' > /dev/null 2>&1
 do
     echo -n "."
     sleep 10;
