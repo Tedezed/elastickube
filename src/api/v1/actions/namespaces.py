@@ -100,7 +100,7 @@ class NamespacesActions(object):
                     "ts": {"$gt": last_timestamp},
                     "op": {"$in": ["i"]},
                     "ns": {"$in": ["elastickube.Namespaces"]}
-                }, tailable=True, await_data=True)
+                }, cursor_type=pymongo.CursorType.TAILABLE_AWAIT)
 
                 cursor.add_option(8)
                 logging.debug("Tailable cursor recreated.")

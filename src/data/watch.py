@@ -77,7 +77,7 @@ def start_monitor(client):
                     'ts': {'$gt': last_timestamp},
                     'op': {'$in': WATCHABLE_OPERATIONS},
                     'ns': {'$in': WATCHABLE_COLLECTIONS}
-                }, tailable=True, await_data=True)
+                }, cursor_type=pymongo.CursorType.TAILABLE_AWAIT)
 
                 cursor.add_option(8)
                 logging.debug('Tailable cursor recreated.')
