@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import logging
+import httplib
 
 from bson.json_util import loads
 from pymongo.errors import DuplicateKeyError, PyMongoError
@@ -69,6 +70,8 @@ class MainWebSocketHandler(SecureWebSocketHandler):
             self.build_actions_lookup()
 
         if not self.user:
+            self.write_message({"error": {"message": "Invalid token."}})
+            self.close(httplib.UNAUTHORIZED, "Invalid token.")
             raise Return()
 
         request = yield self.validate_message(message)

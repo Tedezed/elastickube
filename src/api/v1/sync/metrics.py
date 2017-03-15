@@ -93,10 +93,7 @@ class SyncMetrics(object):
             for timestamp in timestamps:
                 for item in cpu_limits:
                     if item["timestamp"] == timestamp:
-                        if metric["timestamps"].keys() == 0:
-                            metric["timestamps"] = {timestamp: {"cpu_request": item["value"]}}
-                        else:
-                            metric["timestamps"].update({timestamp: {"cpu_request": item["value"]}})
+                        metric["timestamps"][timestamp] = {"cpu_request": item["value"]}
 
         if "memory/request" in namespace_metrics:
             mem_limit_response = yield self.settings["heapster"].namespaces.metric("memory/request",
@@ -114,7 +111,7 @@ class SyncMetrics(object):
             for timestamp in metric["timestamps"].keys():
                 for item in cpu_usages:
                     if item["timestamp"] == timestamp:
-                        metric["timestamps"][timestamp].update({"cpu_usage": item["value"]})
+                        metric["timestamps"][timestamp]["cpu_usage"] = item["value"]
 
         if "memory/usage" in namespace_metrics:
             mem_usage_response = yield self.settings["heapster"].namespaces.metric("memory/usage", name=namespace_name)

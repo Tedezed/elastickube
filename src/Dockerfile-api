@@ -11,7 +11,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 && \
 
 RUN apt-get update -y && \
     apt-get install -y --force-yes mongodb-org-shell libxmlsec1-dev && \
-    pip install --no-compile tornado motor PyJWT pycurl cairosvg futures passlib python-saml  && \
+    pip install --no-compile tornado motor PyJWT pycurl "cairosvg>=1.0,<2.0" futures passlib python-saml  && \
     apt-get clean && \
     apt-get autoremove -y
 
