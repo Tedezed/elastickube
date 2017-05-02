@@ -26,8 +26,7 @@ def filter_namespaces(data, user, _message):
         else:
             if "members" not in data or user["username"] not in data["members"]:
                 return None
-    else:
-        return data
+    return data
 
 
 def filter_metrics(data, user, message):
