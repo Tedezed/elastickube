@@ -19,7 +19,7 @@ import time
 
 from tornado.gen import coroutine
 
-DEFAULT_GITREPO = "https://github.com/helm/charts.git"
+DEFAULT_GITREPO = "https://github.com/helm/charts-classic.git"
 DEFAULT_PASSWORD_REGEX = "^.{8,256}$"
 SCHEMA_VERSION = 3
 
